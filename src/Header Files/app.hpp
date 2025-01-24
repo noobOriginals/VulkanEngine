@@ -3,6 +3,7 @@
 
 // Std includes
 #include <iostream>
+#include <vector>
 
 // Lib includes
 #include <GLFW/glfw3.h>
@@ -110,6 +111,12 @@ private:
             }
         }
         return true;
+    }
+    std::vector<const char*> getRequiredExtensions() {
+        uint32_t glfwExtensionCount = 0;
+        const char** glfwExtensions;
+        glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+        std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
     }
     
     // Members
