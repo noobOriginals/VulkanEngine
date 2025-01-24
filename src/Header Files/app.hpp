@@ -39,6 +39,10 @@ private:
         glfwTerminate();
     }
     void createInstance() {
+        if (enableValidationLayers && !checkValidationLayerSupport()) {
+            throw std::runtime_error("Validation layers requested, but not available!");
+        }
+
         // App info
         VkApplicationInfo appInfo = {};
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -57,18 +61,69 @@ private:
         glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
         createInfo.enabledExtensionCount = glfwExtensionCount;
         createInfo.ppEnabledExtensionNames = glfwExtensions;
-        createInfo.enabledLayerCount = 0;
+        if (enableValidationLayers) {
+            createInfo.enabledLayerCount = 1;
+            createInfo.ppEnabledLayerNames = validationLayers;
+        }
+        else {
+            createInfo.enabledLayerCount = 0;
+        }
 
         // Create instance
         if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
-            std::cerr << "Failed to create instance!\n";
+            throw std::runtime_error("Failed to create instance!");
         }
+
+        // Check for extension support
+        if (enableValidationLayers) {
+            checkExtensionSupport();
+        }
+    }
+    void checkExtensionSupport() {
+        // Check for extension support
+        uint32_t extensionCount = 0;
+        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+        VkExtensionProperties* extensions = (VkExtensionProperties*)malloc(extensionCount * sizeof(VkExtensionProperties));
+        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions);
+        std::cout << "Available extensions:\n";
+        for (int i = 0; i < extensionCount; i++) {
+            std::cout << extensions[i].extensionName << "\n";
+        }
+        std::cout << "\n";
+    }
+    bool checkValidationLayerSupport() {
+        // Check for available validation layers
+        uint32_t layerCount = 0;
+        vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+        VkLayerProperties* availableLayers = (VkLayerProperties*)malloc(layerCount * sizeof(VkLayerProperties));
+        vkEnumerateInstanceLayerProperties(&layerCount, availableLayers);
+        for (int i = 0; i < 1; i++) {
+            bool layerFound = false;
+            for (int j = 0; j < layerCount; j++) {
+                if (strcmp(validationLayers[i], availableLayers[j].layerName) == 0) {
+                    layerFound = true;
+                    break;
+                }
+            }
+            if (!layerFound) {
+                return false;
+            }
+        }
+        return true;
     }
     
     // Members
     const uint32_t WIDTH = 800, HEIGHT = 600;
     GLFWwindow* window;
     VkInstance instance;
+    const char* validationLayers[1] = {
+        "VK_LAYER_KHRONOS_validation"
+    };
+#ifndef NDEBUG
+    const bool enableValidationLayers = true;
+#else
+    const bool enableValidationLayers = false;
+#endif
 };
 
 #endif
