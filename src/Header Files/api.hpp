@@ -82,16 +82,24 @@ namespace api {
 			"VK_LAYER_KHRONOS_validation"
 		};
 
-		// Static validation callbacks
+		// Static validation methods
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 			VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 			VkDebugUtilsMessageTypeFlagsEXT messageType,
 			const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 			void* pUserData
-		) {
-			std::cerr << "Validation layer: " << pCallbackData->pMessage << "\n";
-			return VK_FALSE;
-		}
+		);
+		static VkResult createDebugUtilsMessengerEXT(
+			VkInstance insatnce,
+			const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+			const VkAllocationCallbacks* pAllocator,
+			VkDebugUtilsMessengerEXT* pDebugMessenger
+		);
+		static void destroyDebugUtilsMessengerEXT(
+			VkInstance insatnce,
+			VkDebugUtilsMessengerEXT debugMessenger,
+			const VkAllocationCallbacks* pAllocator
+		);
     };
 }
 

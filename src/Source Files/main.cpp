@@ -7,8 +7,10 @@
 // #include <app.hpp>
 
 void test() {
+#ifndef NDEBUG
     api::window::useCallouts(true);
     api::vulkan::useCallouts(true);
+#endif
     api::Window window(800, 600, "Vulkan Engine");
     window.setWindowResizable(false);
     api::VulkanApp vulkanApp("Vulkan Engine", "No engine");

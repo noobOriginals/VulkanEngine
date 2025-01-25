@@ -11,6 +11,26 @@
 #include <GLFW/glfw3.h>
 // #include <vulkan/vulkan.h>
 
+VkResult createDebugUtilsMessengerEXT(
+    VkInstance insatnce,
+    const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkDebugUtilsMessengerEXT* pDebugMessenger
+) {
+    auto function = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(insatnce, "vkCreateDebugUtilsMessengerEXT");
+    if (function == nullptr) return VK_ERROR_EXTENSION_NOT_PRESENT;
+    return function(insatnce, pCreateInfo, pAllocator, pDebugMessenger);
+}
+void destroyDebugUtilsMessengerEXT(
+    VkInstance insatnce,
+    VkDebugUtilsMessengerEXT debugMessenger,
+    const VkAllocationCallbacks* pAllocator
+) {
+    auto function = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(insatnce, "vkDestroyDebugUtilsMessengerEXT");
+    if (function == nullptr) return;
+    function(insatnce, debugMessenger, pAllocator);
+}
+
 class App {
 public:
     void run() {
@@ -38,6 +58,7 @@ private:
         }
     }
     void cleanup() {
+        if (enableValidationLayers) destroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
         vkDestroyInstance(instance, nullptr);
         glfwDestroyWindow(window);
         glfwTerminate();
@@ -66,6 +87,17 @@ private:
         if (enableValidationLayers) {
             createInfo.enabledLayerCount = 1;
             createInfo.ppEnabledLayerNames = validationLayers;
+
+            VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
+            debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+            debugCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+                                        VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                                        VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+            debugCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                                    VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                                    VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+            debugCreateInfo.pfnUserCallback = debugCallback;
+            createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
         }
         else {
             createInfo.enabledLayerCount = 0;
@@ -134,6 +166,9 @@ private:
                                  VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
                                  VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
         createInfo.pfnUserCallback = debugCallback;
+
+        if (createDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS)
+            throw std::runtime_error("Failed to set up debug messenger!");
     }
     
     // Members

@@ -66,7 +66,7 @@ Window::~Window() {
 	if (callouts) std::cout << "Window: Destructing window \"" << title << "\"\n";
 	if (windowCount < 1) {
 		glfwTerminate();
-		std::cout << "Window: Terminating GLFW" << "\n";
+		if (callouts) std::cout << "Window: Terminating GLFW" << "\n";
 	}
 }
 // Utility
@@ -162,6 +162,7 @@ VulkanApp::VulkanApp(std::string appName, std::string engineName) {
 	if (enableValidationLayers) setupDebugMessenger();
 }
 VulkanApp::~VulkanApp() {
+    if (enableValidationLayers) destroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
     vkDestroyInstance(instance, nullptr);
 	if (callouts) std::cout << "VulkanApp: Destructing vulkan application \"" << appName << "\"\n";
 }
@@ -169,7 +170,7 @@ VulkanApp::~VulkanApp() {
 // Private methods
 void VulkanApp::createInstance() {
 	if (enableValidationLayers && !checkValidationLayerSupport()) throw std::runtime_error("VulkanApp: Validation layers requested, but not available!");
-	else if (callouts) std::cout << "VulkanApp: Validation layers enabled succesfully!\n";
+	else if (callouts) std::cout << "VulkanApp: Validation layers enabled succesfully\n";
 
 	// App info
 	VkApplicationInfo appInfo = {};
@@ -188,8 +189,21 @@ void VulkanApp::createInstance() {
 	createInfo.enabledExtensionCount = (uint32_t) extensions.size();
 	createInfo.ppEnabledExtensionNames = extensions.data();
 	if (enableValidationLayers) {
+		// Add validation layers to instance create info
 		createInfo.enabledLayerCount = 1;
 		createInfo.ppEnabledLayerNames = validationLayers;
+
+		// Add pNext debug messenger for instance debugging
+		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
+		debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+		debugCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+										VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+										VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+		debugCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+									VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+									VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+		debugCreateInfo.pfnUserCallback = debugCallback;
+        createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
 	}
 	else createInfo.enabledLayerCount = 0;
 
@@ -203,6 +217,7 @@ void VulkanApp::createInstance() {
 void VulkanApp::setupDebugMessenger() {
 	if (callouts) std::cout << "VulkanApp: Setting up debug messenger...\n";
 	// Setup the debug messenger for Vulkan Validation Layers
+	// Populate debug messenger create info
 	VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 	createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
@@ -212,6 +227,11 @@ void VulkanApp::setupDebugMessenger() {
 							 VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
 							 VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 	createInfo.pfnUserCallback = debugCallback;
+
+	// Create debug messenger
+	if (createDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS)
+        throw std::runtime_error("VulkanApp: Failed to set up debug messenger!");
+	if (callouts) std::cout << "VulkanApp: Successfully setup debug messenger\n";
 }
 // Utils
 bool VulkanApp::checkValidationLayerSupport() {
@@ -252,4 +272,39 @@ std::vector<const char*> VulkanApp::getRequiredExtensions() {
 	std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 	if (enableValidationLayers) extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 	return extensions;
+}
+
+// Static validation methods
+VKAPI_ATTR VkBool32 VKAPI_CALL VulkanApp::debugCallback(
+	VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+	VkDebugUtilsMessageTypeFlagsEXT messageType,
+	const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+	void* pUserData
+) {
+	// Validation layers debug callback output
+	std::cout << "!!! VulkanApp: VALIDATION LAYER: " << pCallbackData->pMessage << "\n";
+	return VK_FALSE;
+}
+VkResult VulkanApp::createDebugUtilsMessengerEXT(
+	VkInstance insatnce,
+	const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+	const VkAllocationCallbacks* pAllocator,
+	VkDebugUtilsMessengerEXT* pDebugMessenger
+) {
+	if (callouts) std::cout << "VulkanApp: Creating debug messenger extension...\n";
+	// Callback for creating the debug messenger extesnion
+    auto function = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(insatnce, "vkCreateDebugUtilsMessengerEXT");
+    if (function == nullptr) return VK_ERROR_EXTENSION_NOT_PRESENT;
+    return function(insatnce, pCreateInfo, pAllocator, pDebugMessenger);
+}
+void VulkanApp::destroyDebugUtilsMessengerEXT(
+	VkInstance insatnce,
+	VkDebugUtilsMessengerEXT debugMessenger,
+	const VkAllocationCallbacks* pAllocator
+) {
+	if (callouts) std::cout << "VulkanApp: Destroying debug messenger extension...\n";
+	// Callback for destroying the debug messenger extension
+    auto function = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(insatnce, "vkDestroyDebugUtilsMessengerEXT");
+    if (function == nullptr) return;
+    function(insatnce, debugMessenger, pAllocator);
 }
