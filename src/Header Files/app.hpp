@@ -30,7 +30,7 @@ private:
     }
     void initVulkan() {
         createInstance();
-        setupDebugMessenger();
+        if (enableValidationLayers) setupDebugMessenger();
     }
     void mainLoop() {
         while (!glfwWindowShouldClose(window)) {
@@ -78,16 +78,16 @@ private:
 
         // Check for extension support
         if (enableValidationLayers) {
-            checkExtensionSupport();
+            checkSupportedExtensions();
         }
     }
-    void checkExtensionSupport() {
-        // Check for extension support
+    void checkSupportedExtensions() {
+	    // Check for supported extensions
         uint32_t extensionCount = 0;
         vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
         VkExtensionProperties* extensions = (VkExtensionProperties*)malloc(extensionCount * sizeof(VkExtensionProperties));
         vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions);
-        std::cout << "Available extensions:\n";
+        std::cout << "\nAvailable extensions:\n";
         for (int i = 0; i < extensionCount; i++) {
             std::cout << extensions[i].extensionName << "\n";
         }
@@ -114,6 +114,7 @@ private:
         return true;
     }
     std::vector<const char*> getRequiredExtensions() {
+	    // Get extensions required by GLFW
         uint32_t glfwExtensionCount = 0;
         const char** glfwExtensions;
         glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -124,8 +125,6 @@ private:
         return extensions;
     }
     void setupDebugMessenger() {
-        if (!enableValidationLayers) return;
-
         VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
         createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |

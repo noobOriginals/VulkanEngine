@@ -3,10 +3,26 @@
 // Lib includes
 
 // Local Includes
-#include <app.hpp>
+#include <api.hpp>
+// #include <app.hpp>
+
+void test() {
+    api::window::useCallouts(true);
+    api::vulkan::useCallouts(true);
+    api::Window window(800, 600, "Vulkan Engine");
+    window.setWindowResizable(false);
+    api::VulkanApp vulkanApp("Vulkan Engine", "No engine");
+    while (!window.shouldClose()) {
+        window.flush();
+    }
+}
+
+// void test() {
+//     App app;
+//     app.run();
+// }
 
 int main() {
-    App app;
-    app.run();
+    test();
 	return 0;
 }

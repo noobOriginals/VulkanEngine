@@ -4,6 +4,7 @@
 // Std includes
 #include <iostream>
 #include <string>
+#include <vector>
 
 // Lib includes
 #include <GLFW/glfw3.h>
@@ -64,9 +65,33 @@ namespace api {
         VulkanApp(VulkanApp&) = delete;
         ~VulkanApp();
     private:
+		// Methods
+		void createInstance();
+		void setupDebugMessenger();
+
+		// Utils
+		bool checkValidationLayerSupport();
+		void checkSupportedExtensions();
+		std::vector<const char*> getRequiredExtensions();
+
         // Members
         VkInstance instance;
         std::string appName, engineName;
+		VkDebugUtilsMessengerEXT debugMessenger;
+		const char* validationLayers[1] = {
+			"VK_LAYER_KHRONOS_validation"
+		};
+
+		// Static validation callbacks
+		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+			VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+			VkDebugUtilsMessageTypeFlagsEXT messageType,
+			const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+			void* pUserData
+		) {
+			std::cerr << "Validation layer: " << pCallbackData->pMessage << "\n";
+			return VK_FALSE;
+		}
     };
 }
 
