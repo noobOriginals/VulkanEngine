@@ -6,30 +6,8 @@
 #include <vector>
 
 // Lib includes
-#include <vulkan/vulkan_core.h>
-#define GLFW_INCLUDE_VULKAN
+#include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
-// #include <vulkan/vulkan.h>
-
-VkResult createDebugUtilsMessengerEXT(
-    VkInstance insatnce,
-    const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator,
-    VkDebugUtilsMessengerEXT* pDebugMessenger
-) {
-    auto function = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(insatnce, "vkCreateDebugUtilsMessengerEXT");
-    if (function == nullptr) return VK_ERROR_EXTENSION_NOT_PRESENT;
-    return function(insatnce, pCreateInfo, pAllocator, pDebugMessenger);
-}
-void destroyDebugUtilsMessengerEXT(
-    VkInstance insatnce,
-    VkDebugUtilsMessengerEXT debugMessenger,
-    const VkAllocationCallbacks* pAllocator
-) {
-    auto function = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(insatnce, "vkDestroyDebugUtilsMessengerEXT");
-    if (function == nullptr) return;
-    function(insatnce, debugMessenger, pAllocator);
-}
 
 class App {
 public:
@@ -120,7 +98,7 @@ private:
         VkExtensionProperties* extensions = (VkExtensionProperties*)malloc(extensionCount * sizeof(VkExtensionProperties));
         vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions);
         std::cout << "\nAvailable extensions:\n";
-        for (int i = 0; i < extensionCount; i++) {
+        for (uint32_t i = 0; i < extensionCount; i++) {
             std::cout << extensions[i].extensionName << "\n";
         }
         std::cout << "\n";
@@ -131,9 +109,9 @@ private:
         vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
         VkLayerProperties* availableLayers = (VkLayerProperties*)malloc(layerCount * sizeof(VkLayerProperties));
         vkEnumerateInstanceLayerProperties(&layerCount, availableLayers);
-        for (int i = 0; i < 1; i++) {
+        for (uint32_t i = 0; i < 1; i++) {
             bool layerFound = false;
-            for (int j = 0; j < layerCount; j++) {
+            for (uint32_t j = 0; j < layerCount; j++) {
                 if (strcmp(validationLayers[i], availableLayers[j].layerName) == 0) {
                     layerFound = true;
                     break;
@@ -180,7 +158,7 @@ private:
         "VK_LAYER_KHRONOS_validation"
     };
 
-    // Static validation callbacks
+    // Static validation methods
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
         VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
         VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -190,6 +168,26 @@ private:
         std::cerr << "Validation layer: " << pCallbackData->pMessage << "\n";
         return VK_FALSE;
     }
+    static VkResult createDebugUtilsMessengerEXT(
+        VkInstance insatnce,
+        const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+        const VkAllocationCallbacks* pAllocator,
+        VkDebugUtilsMessengerEXT* pDebugMessenger
+    ) {
+        auto function = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(insatnce, "vkCreateDebugUtilsMessengerEXT");
+        if (function == nullptr) return VK_ERROR_EXTENSION_NOT_PRESENT;
+        return function(insatnce, pCreateInfo, pAllocator, pDebugMessenger);
+    }
+    static void destroyDebugUtilsMessengerEXT(
+        VkInstance insatnce,
+        VkDebugUtilsMessengerEXT debugMessenger,
+        const VkAllocationCallbacks* pAllocator
+    ) {
+        auto function = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(insatnce, "vkDestroyDebugUtilsMessengerEXT");
+        if (function == nullptr) return;
+        function(insatnce, debugMessenger, pAllocator);
+    }
+
 #ifndef NDEBUG
     const bool enableValidationLayers = true;
 #else

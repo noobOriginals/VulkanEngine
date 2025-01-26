@@ -51,7 +51,7 @@ Window::Window(const int width, const int height, const std::string title) {
 	glfwMakeContextCurrent(address);
 
 	// Set Window parameters
-	// TODO: UNCOMMENT WHEN NEEDED: // glfwSetFramebufferSizeCallback(address, def_framebuffer_size_callback);
+	glfwSetFramebufferSizeCallback(address, def_framebuffer_size_callback);
 	glfwSwapInterval(1);
 	glfwSetInputMode(address, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 	glfwShowWindow(address);
@@ -95,7 +95,7 @@ void Window::fullscreen() {
 }
 void Window::windowed() {
 	const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-	glfwSetWindowMonitor(address, nullptr, mode->width / 2.0f - width / 2.0f, mode->height / 2.0f - height / 2.0f, width, height, GLFW_DONT_CARE);
+	glfwSetWindowMonitor(address, nullptr, (int)(mode->width / 2.0f - width / 2.0f), (int)(mode->height / 2.0f - height / 2.0f), width, height, GLFW_DONT_CARE);
 	fscreen = false;
 }
 bool Window::isFullscreen() {
@@ -241,9 +241,9 @@ bool VulkanApp::checkValidationLayerSupport() {
 	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 	VkLayerProperties* availableLayers = (VkLayerProperties*)malloc(layerCount * sizeof(VkLayerProperties));
 	vkEnumerateInstanceLayerProperties(&layerCount, availableLayers);
-	for (int i = 0; i < 1; i++) {
+	for (uint32_t i = 0; i < 1; i++) {
 		bool layerFound = false;
-		for (int j = 0; j < layerCount; j++) {
+		for (uint32_t j = 0; j < layerCount; j++) {
 			if (strcmp(validationLayers[i], availableLayers[j].layerName) == 0) {
 				layerFound = true;
 				break;
@@ -261,7 +261,7 @@ void VulkanApp::checkSupportedExtensions() {
 	VkExtensionProperties* extensions = (VkExtensionProperties*)malloc(extensionCount * sizeof(VkExtensionProperties));
 	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions);
 	std::cout << "VulkanApp: Available extensions:\n";
-	for (int i = 0; i < extensionCount; i++) std::cout << "    " << extensions[i].extensionName << "\n";
+	for (uint32_t i = 0; i < extensionCount; i++) std::cout << "    " << extensions[i].extensionName << "\n";
 }
 std::vector<const char*> VulkanApp::getRequiredExtensions() {
 	if (callouts) std::cout << "VulkanApp: Getting GLFW required extensions...\n";

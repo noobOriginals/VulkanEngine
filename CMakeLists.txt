@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.26)
-set (CXX_STANDARD_REQUIRED 17)
 project(Engine VERSION 0.1.0 LANGUAGES C CXX)
 
 set (FullOutputDir "${CMAKE_SOURCE_DIR}/bin")
@@ -22,6 +21,7 @@ link_libraries(glfw3)
 link_libraries(vulkan-1)
 
 add_executable("${PROJECT_NAME}-test" ${Sources})
+target_compile_features("${PROJECT_NAME}-test" PUBLIC cxx_std_17)
 
 add_custom_target(
 	copy_resources ALL
