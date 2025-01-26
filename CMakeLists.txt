@@ -17,8 +17,8 @@ link_directories($ENV{VULKAN_PATH})
 link_libraries(glfw3)
 link_libraries(vulkan-1)
 
-add_executable("${PROJECT_NAME}-test" ${Sources})
-target_compile_features("${PROJECT_NAME}-test" PUBLIC cxx_std_17)
+add_executable("${PROJECT_NAME}" ${Sources})
+target_compile_features("${PROJECT_NAME}" PUBLIC cxx_std_17)
 
 add_custom_target(
 	copy_resources ALL
@@ -33,5 +33,5 @@ add_custom_target(
 	${FullOutputDir}
 	COMMENT "Copying resources into birnay output folder"
 )
-add_dependencies("${PROJECT_NAME}-test" copy_resources)
+add_dependencies("${PROJECT_NAME}" copy_resources)
 
