@@ -11,10 +11,7 @@ set (HeaderPath "${CMAKE_SOURCE_DIR}/src/Header Files")
 set (ResourcePath "${CMAKE_SOURCE_DIR}/src/Resource Files")
 file (GLOB Sources CONFIGURE_DEPENDS "${SrcPath}/*.cpp" "${HeaderPath}/*.hpp" "${SrcPath}/*.c" "${HeaderPath}/*.h")
 
-include_directories(${HeaderPath})
-include_directories(${SrcPath})
-include_directories($ENV{VULKAN_PATH})
-
+include_directories(${HeaderPath} ${SrcPath} $ENV{VULKAN_PATH})
 link_directories($ENV{VULKAN_PATH})
 
 link_libraries(glfw3)
