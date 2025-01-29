@@ -251,6 +251,10 @@ bool VulkanApp::checkValidationLayerSupport() {
 		}
 		if (!layerFound) return false;
 	}
+
+	// Free unused memory
+	free(availableLayers);
+	
 	return true;
 }
 void VulkanApp::checkSupportedExtensions() {
@@ -262,6 +266,9 @@ void VulkanApp::checkSupportedExtensions() {
 	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions);
 	std::cout << "VulkanApp: Available extensions:\n";
 	for (uint32_t i = 0; i < extensionCount; i++) std::cout << "    " << extensions[i].extensionName << "\n";
+	
+	// Free unused memory
+	free(extensions);
 }
 std::vector<const char*> VulkanApp::getRequiredExtensions() {
 	if (callouts) std::cout << "VulkanApp: Getting GLFW required extensions...\n";

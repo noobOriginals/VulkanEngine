@@ -102,6 +102,9 @@ private:
             std::cout << extensions[i].extensionName << "\n";
         }
         std::cout << "\n";
+
+        // Free unused memory
+        free(extensions);
     }
     bool checkValidationLayerSupport() {
         // Check for available validation layers
@@ -121,6 +124,10 @@ private:
                 return false;
             }
         }
+
+        // Free unused memory
+        free(availableLayers);
+
         return true;
     }
     std::vector<const char*> getRequiredExtensions() {
