@@ -56,7 +56,7 @@ namespace api {
 
     // Vulkan api
     namespace vulkan {
-		// int getAppCount();
+		int getAppCount();
 		void useCallouts(bool callouts);
     }
     class VulkanApp {

@@ -1,6 +1,7 @@
 #include <api.hpp>
 using namespace api;
 using namespace window;
+using namespace vulkan;
 
 #ifndef NDEBUG
     const bool enableValidationLayers = true;
@@ -14,16 +15,16 @@ namespace api {
 	namespace window {
 		// Utility
 		int windowCount = 0;
-		bool callouts = false;
+		bool wcallouts = false;
 		int getWindowCount() { return windowCount; }
-		void useCallouts(bool value) { callouts = value; }
+		void useCallouts(bool value) { wcallouts = value; }
 	}
 	namespace vulkan {
 		// Utility
-		// int vulkanAppCount = 0;
-		bool callouts = false;
-		// int getWindowCount() { return windowCount; }
-		void useCallouts(bool value) { callouts = value; }
+		int vulkanAppCount = 0;
+		bool vkcallouts = false;
+		int getVulkanAppCount() { return vulkanAppCount; }
+		void useCallouts(bool value) { vkcallouts = value; }
 	}
 }
 
@@ -33,7 +34,7 @@ Window::Window(const int width, const int height, const std::string title) {
 	this->width = width;
 	this->height = height;
 	fscreen = false;
-	if (callouts) std::cout << "Window: Creating window \"" << title << "\"\n";
+	if (wcallouts) std::cout << "Window: Creating window \"" << title << "\"\n";
 
 	// Prepare GLFW for window creation
 	glfwInit();
@@ -63,10 +64,11 @@ Window::~Window() {
 	glfwSetWindowShouldClose(address, true);
 	glfwDestroyWindow(address);
 	windowCount--;
-	if (callouts) std::cout << "Window: Destructing window \"" << title << "\"\n";
+	if (wcallouts) std::cout << "Window: Destructing window \"" << title << "\"\n";
 	if (windowCount < 1) {
 		glfwTerminate();
-		if (callouts) std::cout << "Window: Terminating GLFW" << "\n";
+		if (wcallouts) std::cout << "Window: No windows remaining" << "\n";
+		if (wcallouts) std::cout << "Window: Terminating GLFW" << "\n";
 	}
 }
 // Utility
@@ -156,21 +158,26 @@ void Window::disableVSync() {
 VulkanApp::VulkanApp(std::string appName, std::string engineName) {
     this->appName = appName;
     this->engineName = engineName;
-    if (callouts) std::cout << "VulkanApp: Creating vulkan application \"" << appName << "\" with engine \"" << engineName << "\"\n";
+    if (vkcallouts) std::cout << "VulkanApp: Creating vulkan application \"" << appName << "\" with engine \"" << engineName << "\"\n";
 	// Init Vulkan components
     createInstance();
 	if (enableValidationLayers) setupDebugMessenger();
+
+	vulkanAppCount++;
 }
 VulkanApp::~VulkanApp() {
+	// Discard resources
     if (enableValidationLayers) destroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
     vkDestroyInstance(instance, nullptr);
-	if (callouts) std::cout << "VulkanApp: Destructing vulkan application \"" << appName << "\"\n";
+	vulkanAppCount--;
+	if (vkcallouts) std::cout << "VulkanApp: Destructing vulkan application \"" << appName << "\"\n";
+	if (vulkanAppCount < 1 && vkcallouts) std::cout << "VulkanApp: No vulkan applications remaining\n";
 }
 
 // Private methods
 void VulkanApp::createInstance() {
 	if (enableValidationLayers && !checkValidationLayerSupport()) throw std::runtime_error("VulkanApp: Validation layers requested, but not available!");
-	else if (callouts) std::cout << "VulkanApp: Validation layers enabled succesfully\n";
+	else if (vkcallouts) std::cout << "VulkanApp: Validation layers enabled succesfully\n";
 
 	// App info
 	VkApplicationInfo appInfo = {};
@@ -209,13 +216,13 @@ void VulkanApp::createInstance() {
 
 	// Create instance
 	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) throw std::runtime_error("VulkanApp: Failed to create instance!");
-    else if (callouts) std::cout << "VulkanApp: Successfully created vulkan instance for vulkan application \"" << appName << "\"\n";
+    else if (vkcallouts) std::cout << "VulkanApp: Successfully created vulkan instance for vulkan application \"" << appName << "\"\n";
 
 	// Check for supported extensions
 	if (enableValidationLayers) checkSupportedExtensions();
 }
 void VulkanApp::setupDebugMessenger() {
-	if (callouts) std::cout << "VulkanApp: Setting up debug messenger...\n";
+	if (vkcallouts) std::cout << "VulkanApp: Setting up debug messenger...\n";
 	// Setup the debug messenger for Vulkan Validation Layers
 	// Populate debug messenger create info
 	VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
@@ -231,11 +238,11 @@ void VulkanApp::setupDebugMessenger() {
 	// Create debug messenger
 	if (createDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS)
         throw std::runtime_error("VulkanApp: Failed to set up debug messenger!");
-	if (callouts) std::cout << "VulkanApp: Successfully setup debug messenger\n";
+	if (vkcallouts) std::cout << "VulkanApp: Successfully setup debug messenger\n";
 }
 // Utils
 bool VulkanApp::checkValidationLayerSupport() {
-	if (callouts) std::cout << "VulkanApp: Checking for validation layer support...\n";
+	if (vkcallouts) std::cout << "VulkanApp: Checking for validation layer support...\n";
 	// Check for available validation layers
 	uint32_t layerCount = 0;
 	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -258,7 +265,7 @@ bool VulkanApp::checkValidationLayerSupport() {
 	return true;
 }
 void VulkanApp::checkSupportedExtensions() {
-	if (callouts) std::cout << "VulkanApp: Checking for supported extensions...\n";
+	if (vkcallouts) std::cout << "VulkanApp: Checking for supported extensions...\n";
 	// Check for supported extensions
 	uint32_t extensionCount = 0;
 	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
@@ -271,7 +278,7 @@ void VulkanApp::checkSupportedExtensions() {
 	free(extensions);
 }
 std::vector<const char*> VulkanApp::getRequiredExtensions() {
-	if (callouts) std::cout << "VulkanApp: Getting GLFW required extensions...\n";
+	if (vkcallouts) std::cout << "VulkanApp: Getting GLFW required extensions...\n";
 	// Get extensions required by GLFW
 	uint32_t glfwExtensionCount = 0;
 	const char** glfwExtensions;
@@ -298,7 +305,7 @@ VkResult VulkanApp::createDebugUtilsMessengerEXT(
 	const VkAllocationCallbacks* pAllocator,
 	VkDebugUtilsMessengerEXT* pDebugMessenger
 ) {
-	if (callouts) std::cout << "VulkanApp: Creating debug messenger extension...\n";
+	if (vkcallouts) std::cout << "VulkanApp: Creating debug messenger extension...\n";
 	// Callback for creating the debug messenger extesnion
     auto function = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(insatnce, "vkCreateDebugUtilsMessengerEXT");
     if (function == nullptr) return VK_ERROR_EXTENSION_NOT_PRESENT;
@@ -309,7 +316,7 @@ void VulkanApp::destroyDebugUtilsMessengerEXT(
 	VkDebugUtilsMessengerEXT debugMessenger,
 	const VkAllocationCallbacks* pAllocator
 ) {
-	if (callouts) std::cout << "VulkanApp: Destroying debug messenger extension...\n";
+	if (vkcallouts) std::cout << "VulkanApp: Destroying debug messenger extension...\n";
 	// Callback for destroying the debug messenger extension
     auto function = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(insatnce, "vkDestroyDebugUtilsMessengerEXT");
     if (function == nullptr) return;
