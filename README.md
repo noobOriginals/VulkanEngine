@@ -57,6 +57,16 @@ You should be interested in having these specific files:
     ./glm/
     ./glfw3.lib
 
+## VULKAN_PATH Env Variable
+
+Now you have to create an **environment variable** with the name "**VULKAN_PATH**" and the value equal to the path to your "**vulkan**" folder that you just created.    
+
+On Windows, you edit the system env variables in the menu which you can search for in your taskbar (search for "**environment variable**").  
+On Linux or Mac, you add that to your env paths in the bash or zsh config (Linux), or by command line, with  
+
+    $ VULKAN_PATH="path/to/vulkan"
+    $ export $VULKAN_PATH
+
 ## Building with the CMake GUI
 Open the CMake GUI, then select the source code directory.  
 Now select a build directory (you have to create it yorself first).  
