@@ -67,21 +67,28 @@ namespace api {
     private:
 		// Methods
 		void createInstance();
+	#ifndef NDEBUG
 		void setupDebugMessenger();
+	#endif
 
 		// Utils
+	#ifndef NDEBUG
 		bool checkValidationLayerSupport();
+	#endif
 		void checkSupportedExtensions();
 		std::vector<const char*> getRequiredExtensions();
 
         // Members
         VkInstance instance;
         std::string appName, engineName;
+	#ifndef NDEBUG
 		VkDebugUtilsMessengerEXT debugMessenger;
 		const char* validationLayers[1] = {
 			"VK_LAYER_KHRONOS_validation"
 		};
+	#endif
 
+	#ifndef NDEBUG
 		// Static validation methods
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 			VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -100,6 +107,7 @@ namespace api {
 			VkDebugUtilsMessengerEXT debugMessenger,
 			const VkAllocationCallbacks* pAllocator
 		);
+	#endif
     };
 }
 

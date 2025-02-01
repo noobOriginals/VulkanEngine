@@ -28,7 +28,10 @@ private:
     }
     void initVulkan() {
         createInstance();
-        if (enableValidationLayers) setupDebugMessenger();
+    #ifndef NDEBUG
+        setupDebugMessenger();
+    #endif
+        pickPhysicalDevice();
     }
     void mainLoop() {
         while (!glfwWindowShouldClose(window)) {
@@ -36,15 +39,17 @@ private:
         }
     }
     void cleanup() {
-        if (enableValidationLayers) destroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+    #ifndef NDEBUG
+        destroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+    #endif
         vkDestroyInstance(instance, nullptr);
         glfwDestroyWindow(window);
         glfwTerminate();
     }
     void createInstance() {
-        if (enableValidationLayers && !checkValidationLayerSupport()) {
-            throw std::runtime_error("Validation layers requested, but not available!");
-        }
+    #ifndef NDEBUG
+        if (!checkValidationLayerSupport()) throw std::runtime_error("Validation layers requested, but not available!");
+    #endif
 
         // App info
         VkApplicationInfo appInfo = {};
@@ -62,35 +67,33 @@ private:
         std::vector<const char*> extensions = getRequiredExtensions();
         createInfo.enabledExtensionCount = (uint32_t) extensions.size();
         createInfo.ppEnabledExtensionNames = extensions.data();
-        if (enableValidationLayers) {
-            createInfo.enabledLayerCount = 1;
-            createInfo.ppEnabledLayerNames = validationLayers;
+    #ifndef NDEBUG
+        createInfo.enabledLayerCount = 1;
+        createInfo.ppEnabledLayerNames = validationLayers;
 
-            VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
-            debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-            debugCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-                                        VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-                                        VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-            debugCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-                                    VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-                                    VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-            debugCreateInfo.pfnUserCallback = debugCallback;
-            createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
-        }
-        else {
-            createInfo.enabledLayerCount = 0;
-        }
+        VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
+        debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+        debugCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+                                    VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                                    VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+        debugCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                                VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                                VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+        debugCreateInfo.pfnUserCallback = debugCallback;
+        createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
+    #else 
+        createInfo.enabledLayerCount = 0;
+    #endif
 
         // Create instance
-        if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to create instance!");
-        }
+        if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) throw std::runtime_error("Failed to create instance!");
 
         // Check for extension support
-        if (enableValidationLayers) {
+    #ifndef NDEBUG
             checkSupportedExtensions();
-        }
+    #endif
     }
+#ifndef NDEBUG
     void checkSupportedExtensions() {
 	    // Check for supported extensions
         uint32_t extensionCount = 0;
@@ -130,17 +133,19 @@ private:
 
         return true;
     }
+#endif
     std::vector<const char*> getRequiredExtensions() {
 	    // Get extensions required by GLFW
         uint32_t glfwExtensionCount = 0;
         const char** glfwExtensions;
         glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
         std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-        if (enableValidationLayers) {
-            extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-        }
+    #ifndef NDEBUG
+        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    #endif
         return extensions;
     }
+#ifndef NDEBUG
     void setupDebugMessenger() {
         VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -155,16 +160,26 @@ private:
         if (createDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS)
             throw std::runtime_error("Failed to set up debug messenger!");
     }
+#endif
+    void pickPhysicalDevice() {
+        uint32_t deviceCount = 0;
+        vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+        if (deviceCount == 0) throw std::runtime_error("Failed to find GPU's with Vulkan support!");
+    }
     
     // Members
     const uint32_t WIDTH = 800, HEIGHT = 600;
     GLFWwindow* window;
     VkInstance instance;
+#ifndef NDEBUG
     VkDebugUtilsMessengerEXT debugMessenger;
     const char* validationLayers[1] = {
         "VK_LAYER_KHRONOS_validation"
     };
+#endif
+    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
+#ifndef NDEBUG
     // Static validation methods
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
         VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -194,11 +209,6 @@ private:
         if (function == nullptr) return;
         function(insatnce, debugMessenger, pAllocator);
     }
-
-#ifndef NDEBUG
-    const bool enableValidationLayers = true;
-#else
-    const bool enableValidationLayers = false;
 #endif
 };
 

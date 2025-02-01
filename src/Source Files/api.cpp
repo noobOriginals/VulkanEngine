@@ -3,12 +3,6 @@ using namespace api;
 using namespace window;
 using namespace vulkan;
 
-#ifndef NDEBUG
-    const bool enableValidationLayers = true;
-#else
-    const bool enableValidationLayers = false;
-#endif
-
 void def_framebuffer_size_callback(GLFWwindow* window, int width, int height) {}
 
 namespace api {
@@ -161,13 +155,17 @@ VulkanApp::VulkanApp(std::string appName, std::string engineName) {
     if (vkcallouts) std::cout << "VulkanApp: Creating vulkan application \"" << appName << "\" with engine \"" << engineName << "\"\n";
 	// Init Vulkan components
     createInstance();
-	if (enableValidationLayers) setupDebugMessenger();
+#ifndef NDEBUG
+	setupDebugMessenger();
+#endif
 
 	vulkanAppCount++;
 }
 VulkanApp::~VulkanApp() {
 	// Discard resources
-    if (enableValidationLayers) destroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+#ifndef NDEBUG
+	destroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+#endif
     vkDestroyInstance(instance, nullptr);
 	vulkanAppCount--;
 	if (vkcallouts) std::cout << "VulkanApp: Destructing vulkan application \"" << appName << "\"\n";
@@ -176,8 +174,10 @@ VulkanApp::~VulkanApp() {
 
 // Private methods
 void VulkanApp::createInstance() {
-	if (enableValidationLayers && !checkValidationLayerSupport()) throw std::runtime_error("VulkanApp: Validation layers requested, but not available!");
+#ifndef NDEBUG
+	if (!checkValidationLayerSupport()) throw std::runtime_error("VulkanApp: Validation layers requested, but not available!");
 	else if (vkcallouts) std::cout << "VulkanApp: Validation layers enabled succesfully\n";
+#endif
 
 	// App info
 	VkApplicationInfo appInfo = {};
@@ -195,32 +195,36 @@ void VulkanApp::createInstance() {
 	std::vector<const char*> extensions = getRequiredExtensions();
 	createInfo.enabledExtensionCount = (uint32_t) extensions.size();
 	createInfo.ppEnabledExtensionNames = extensions.data();
-	if (enableValidationLayers) {
-		// Add validation layers to instance create info
-		createInfo.enabledLayerCount = 1;
-		createInfo.ppEnabledLayerNames = validationLayers;
+#ifndef NDEBUG
+	// Add validation layers to instance create info
+	createInfo.enabledLayerCount = 1;
+	createInfo.ppEnabledLayerNames = validationLayers;
 
-		// Add pNext debug messenger for instance debugging
-		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
-		debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-		debugCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-										VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-										VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-		debugCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-									VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-									VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-		debugCreateInfo.pfnUserCallback = debugCallback;
-        createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
-	}
-	else createInfo.enabledLayerCount = 0;
+	// Add pNext debug messenger for instance debugging
+	VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
+	debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+	debugCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+									VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+									VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+	debugCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+								VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+								VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+	debugCreateInfo.pfnUserCallback = debugCallback;
+	createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
+#else
+	createInfo.enabledLayerCount = 0;
+#endif
 
 	// Create instance
 	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) throw std::runtime_error("VulkanApp: Failed to create instance!");
     else if (vkcallouts) std::cout << "VulkanApp: Successfully created vulkan instance for vulkan application \"" << appName << "\"\n";
 
 	// Check for supported extensions
-	if (enableValidationLayers) checkSupportedExtensions();
+#ifndef NDEBUG
+	checkSupportedExtensions();
+#endif
 }
+#ifndef NDEBUG
 void VulkanApp::setupDebugMessenger() {
 	if (vkcallouts) std::cout << "VulkanApp: Setting up debug messenger...\n";
 	// Setup the debug messenger for Vulkan Validation Layers
@@ -277,6 +281,7 @@ void VulkanApp::checkSupportedExtensions() {
 	// Free unused memory
 	free(extensions);
 }
+#endif
 std::vector<const char*> VulkanApp::getRequiredExtensions() {
 	if (vkcallouts) std::cout << "VulkanApp: Getting GLFW required extensions...\n";
 	// Get extensions required by GLFW
@@ -284,10 +289,13 @@ std::vector<const char*> VulkanApp::getRequiredExtensions() {
 	const char** glfwExtensions;
 	glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 	std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-	if (enableValidationLayers) extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#ifndef NDEBUG
+	extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#endif
 	return extensions;
 }
 
+#ifndef NDEBUG
 // Static validation methods
 VKAPI_ATTR VkBool32 VKAPI_CALL VulkanApp::debugCallback(
 	VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -322,3 +330,4 @@ void VulkanApp::destroyDebugUtilsMessengerEXT(
     if (function == nullptr) return;
     function(insatnce, debugMessenger, pAllocator);
 }
+#endif
