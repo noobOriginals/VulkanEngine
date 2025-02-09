@@ -9,231 +9,87 @@
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 
+namespace app {
+
 class App {
 public:
-    void run() {
-        initWindow();
-        initVulkan();
-        mainLoop();
-        cleanup();
-    }
+    void run();
 private:
+    // Data types
+    struct QueueFamily {
+        uint32_t index;
+        bool hasValue = false;
+        void set(uint32_t i) {
+            index = i;
+            hasValue = true;
+        }
+    };
+    struct QueueFamilyIndices {
+        QueueFamily graphicsFamily;
+
+        bool isComplete() {
+            return graphicsFamily.hasValue;
+        }
+    };
+
     // Methods
-    void initWindow() {
-        glfwInit();
-	    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    void initWindow();
+    void initVulkan();
+    void mainLoop();
+    void cleanup();
 
-        window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan Engine", nullptr, nullptr);
-    }
-    void initVulkan() {
-        createInstance();
-    #ifndef NDEBUG
-        setupDebugMessenger();
-    #endif
-        pickPhysicalDevice();
-    }
-    void mainLoop() {
-        while (!glfwWindowShouldClose(window)) {
-            glfwPollEvents();
-        }
-    }
-    void cleanup() {
-    #ifndef NDEBUG
-        destroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
-    #endif
-        vkDestroyInstance(instance, nullptr);
-        glfwDestroyWindow(window);
-        glfwTerminate();
-    }
-    void createInstance() {
-    #ifndef NDEBUG
-        if (!checkValidationLayerSupport()) throw std::runtime_error("Validation layers requested, but not available!");
-    #endif
+    void createInstance();
 
-        // App info
-        VkApplicationInfo appInfo = {};
-        appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-        appInfo.pApplicationName = "Vulkan Engine";
-        appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-        appInfo.pEngineName = "No Engine";
-        appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-        appInfo.apiVersion = VK_API_VERSION_1_0;
-
-        // Create info
-        VkInstanceCreateInfo createInfo = {};
-        createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-        createInfo.pApplicationInfo = &appInfo;
-        std::vector<const char*> extensions = getRequiredExtensions();
-        createInfo.enabledExtensionCount = (uint32_t) extensions.size();
-        createInfo.ppEnabledExtensionNames = extensions.data();
-    #ifndef NDEBUG
-        createInfo.enabledLayerCount = 1;
-        createInfo.ppEnabledLayerNames = validationLayers;
-
-        VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
-        debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        debugCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-                                    VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-                                    VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        debugCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-                                VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-                                VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        debugCreateInfo.pfnUserCallback = debugCallback;
-        createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
-    #else 
-        createInfo.enabledLayerCount = 0;
-    #endif
-
-        // Create instance
-        if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) throw std::runtime_error("Failed to create instance!");
-
-        // Check for extension support
-    #ifndef NDEBUG
-            checkSupportedExtensions();
-    #endif
-    }
 #ifndef NDEBUG
-    void checkSupportedExtensions() {
-	    // Check for supported extensions
-        uint32_t extensionCount = 0;
-        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-        VkExtensionProperties* extensions = (VkExtensionProperties*)malloc(extensionCount * sizeof(VkExtensionProperties));
-        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions);
-        std::cout << "\nAvailable extensions:\n";
-        for (uint32_t i = 0; i < extensionCount; i++) {
-            std::cout << extensions[i].extensionName << "\n";
-        }
-        std::cout << "\n";
-
-        // Free unused memory
-        free(extensions);
-    }
-    bool checkValidationLayerSupport() {
-        // Check for available validation layers
-        uint32_t layerCount = 0;
-        vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-        VkLayerProperties* availableLayers = (VkLayerProperties*)malloc(layerCount * sizeof(VkLayerProperties));
-        vkEnumerateInstanceLayerProperties(&layerCount, availableLayers);
-        for (uint32_t i = 0; i < 1; i++) {
-            bool layerFound = false;
-            for (uint32_t j = 0; j < layerCount; j++) {
-                if (strcmp(validationLayers[i], availableLayers[j].layerName) == 0) {
-                    layerFound = true;
-                    break;
-                }
-            }
-            if (!layerFound) {
-                return false;
-            }
-        }
-
-        // Free unused memory
-        free(availableLayers);
-
-        return true;
-    }
+    // Debug ONLY
+    void checkSupportedExtensions();
+    bool checkValidationLayerSupport();
 #endif
-    std::vector<const char*> getRequiredExtensions() {
-	    // Get extensions required by GLFW
-        uint32_t glfwExtensionCount = 0;
-        const char** glfwExtensions;
-        glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-        std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-    #ifndef NDEBUG
-        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-    #endif
-        return extensions;
-    }
+
+    std::vector<const char*> getRequiredExtensions();
+    void pickPhysicalDevice();
+    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+
 #ifndef NDEBUG
-    void setupDebugMessenger() {
-        VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
-        createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-                                     VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-                                     VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-                                 VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-                                 VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        createInfo.pfnUserCallback = debugCallback;
-
-        if (createDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS)
-            throw std::runtime_error("Failed to set up debug messenger!");
-    }
+    // Debug ONLY
+    void setupDebugMessenger();
 #endif
-    void pickPhysicalDevice() {
-        uint32_t deviceCount = 0;
-        vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
-        if (deviceCount == 0) throw std::runtime_error("Failed to find GPU's with Vulkan support!");
-        VkPhysicalDevice* devices = (VkPhysicalDevice*)malloc(sizeof(VkPhysicalDevice) * deviceCount);
-        vkEnumeratePhysicalDevices(instance, &deviceCount, devices);
 
-        for (int i = 0; i < deviceCount; i++) {
-            if (isDeviceSuitable(devices[i])) {
-                physicalDevice = devices[i];
-                break;
-            }
-        }
-        if (physicalDevice == VK_NULL_HANDLE) throw std::runtime_error("Failed to find suitable GPU!");
-
-        // Free unused memory
-        free(devices);
-    }
     // Check for requirements of GPU specs
-    bool isDeviceSuitable(VkPhysicalDevice device) {\
-        // Get GPU Specs
-        VkPhysicalDeviceProperties deviceProperties;
-        vkGetPhysicalDeviceProperties(device, &deviceProperties);
-        VkPhysicalDeviceFeatures deviceFeatures;
-        vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
-        // Set requirements
-        bool isSuitable = true;
-        return isSuitable;
-    }
+    bool isDeviceSuitable(VkPhysicalDevice device);
     
     // Members
     const uint32_t WIDTH = 800, HEIGHT = 600;
     GLFWwindow* window;
     VkInstance instance;
-#ifndef NDEBUG
-    VkDebugUtilsMessengerEXT debugMessenger;
-    const char* validationLayers[1] = {
-        "VK_LAYER_KHRONOS_validation"
-    };
-#endif
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
 #ifndef NDEBUG
+    // Debug ONLY
+    VkDebugUtilsMessengerEXT debugMessenger;
+    const char* validationLayers[1] = { "VK_LAYER_KHRONOS_validation" };
+
     // Static validation methods
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
         VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
         VkDebugUtilsMessageTypeFlagsEXT messageType,
         const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
         void* pUserData
-    ) {
-        std::cerr << "Validation layer: " << pCallbackData->pMessage << "\n";
-        return VK_FALSE;
-    }
+    );
     static VkResult createDebugUtilsMessengerEXT(
         VkInstance insatnce,
         const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
         const VkAllocationCallbacks* pAllocator,
         VkDebugUtilsMessengerEXT* pDebugMessenger
-    ) {
-        auto function = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(insatnce, "vkCreateDebugUtilsMessengerEXT");
-        if (function == nullptr) return VK_ERROR_EXTENSION_NOT_PRESENT;
-        return function(insatnce, pCreateInfo, pAllocator, pDebugMessenger);
-    }
+    );
     static void destroyDebugUtilsMessengerEXT(
         VkInstance insatnce,
         VkDebugUtilsMessengerEXT debugMessenger,
         const VkAllocationCallbacks* pAllocator
-    ) {
-        auto function = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(insatnce, "vkDestroyDebugUtilsMessengerEXT");
-        if (function == nullptr) return;
-        function(insatnce, debugMessenger, pAllocator);
-    }
+    );
 #endif
 };
+
+}
 
 #endif

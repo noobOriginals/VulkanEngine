@@ -6,20 +6,20 @@ using namespace vulkan;
 void def_framebuffer_size_callback(GLFWwindow* window, int width, int height) {}
 
 namespace api {
-	namespace window {
-		// Utility
-		int windowCount = 0;
-		bool wcallouts = false;
-		int getWindowCount() { return windowCount; }
-		void useCallouts(bool value) { wcallouts = value; }
-	}
-	namespace vulkan {
-		// Utility
-		int vulkanAppCount = 0;
-		bool vkcallouts = false;
-		int getVulkanAppCount() { return vulkanAppCount; }
-		void useCallouts(bool value) { vkcallouts = value; }
-	}
+
+namespace window {
+	// Utility
+	int windowCount = 0;
+	bool wcallouts = false;
+	int getWindowCount() { return windowCount; }
+	void useCallouts(bool value) { wcallouts = value; }
+}
+namespace vulkan {
+	// Utility
+	int vulkanAppCount = 0;
+	bool vkcallouts = false;
+	int getVulkanAppCount() { return vulkanAppCount; }
+	void useCallouts(bool value) { vkcallouts = value; }
 }
 
 // Window
@@ -29,11 +29,11 @@ Window::Window(const int width, const int height, const std::string title) {
 	this->height = height;
 	fscreen = false;
 	if (wcallouts) std::cout << "Window: Creating window \"" << title << "\"\n";
-
+	
 	// Prepare GLFW for window creation
 	glfwInit();
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-
+	
 	// Create window and associate pointer
 	address = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 	if (address == nullptr) {
@@ -44,13 +44,13 @@ Window::Window(const int width, const int height, const std::string title) {
 		}
 	}
 	glfwMakeContextCurrent(address);
-
+	
 	// Set Window parameters
 	glfwSetFramebufferSizeCallback(address, def_framebuffer_size_callback);
 	glfwSwapInterval(1);
 	glfwSetInputMode(address, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 	glfwShowWindow(address);
-
+	
 	windowCount++;
 }
 Window::~Window() {
@@ -98,7 +98,7 @@ bool Window::isFullscreen() {
 	return fscreen;
 }
 bool Window::isResizable() {
-    return resizable;
+	return resizable;
 }
 bool Window::keyPressed(short key) {
 	return (glfwGetKey(address, key) == GLFW_PRESS);
@@ -134,7 +134,7 @@ void Window::hide() {
 	glfwHideWindow(address);
 }
 void Window::setWindowResizable(bool resizable) {
-    glfwSetWindowAttrib(address, GLFW_RESIZABLE, resizable ? GLFW_TRUE : GLFW_FALSE);
+	glfwSetWindowAttrib(address, GLFW_RESIZABLE, resizable ? GLFW_TRUE : GLFW_FALSE);
     this->resizable = resizable;
 }
 void Window::getSize(int* width, int* height) {
@@ -150,22 +150,25 @@ void Window::disableVSync() {
 
 // VulkanApp
 VulkanApp::VulkanApp(std::string appName, std::string engineName) {
-    this->appName = appName;
+	this->appName = appName;
     this->engineName = engineName;
     if (vkcallouts) std::cout << "VulkanApp: Creating vulkan application \"" << appName << "\" with engine \"" << engineName << "\"\n";
 	// Init Vulkan components
     createInstance();
-#ifndef NDEBUG
+	#ifndef NDEBUG
 	setupDebugMessenger();
-#endif
-
+	#endif
+	
 	vulkanAppCount++;
 }
 VulkanApp::~VulkanApp() {
 	// Discard resources
+
 #ifndef NDEBUG
+	// Debug ONLY
 	destroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 #endif
+
     vkDestroyInstance(instance, nullptr);
 	vulkanAppCount--;
 	if (vkcallouts) std::cout << "VulkanApp: Destructing vulkan application \"" << appName << "\"\n";
@@ -174,11 +177,13 @@ VulkanApp::~VulkanApp() {
 
 // Private methods
 void VulkanApp::createInstance() {
+
 #ifndef NDEBUG
+	// Debug ONLY
 	if (!checkValidationLayerSupport()) throw std::runtime_error("VulkanApp: Validation layers requested, but not available!");
 	else if (vkcallouts) std::cout << "VulkanApp: Validation layers enabled succesfully\n";
 #endif
-
+	
 	// App info
 	VkApplicationInfo appInfo = {};
 	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -187,7 +192,7 @@ void VulkanApp::createInstance() {
 	appInfo.pEngineName = engineName.c_str();
 	appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 	appInfo.apiVersion = VK_API_VERSION_1_0;
-
+	
 	// Create info
 	VkInstanceCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -195,36 +200,43 @@ void VulkanApp::createInstance() {
 	std::vector<const char*> extensions = getRequiredExtensions();
 	createInfo.enabledExtensionCount = (uint32_t) extensions.size();
 	createInfo.ppEnabledExtensionNames = extensions.data();
+
 #ifndef NDEBUG
+	// Debug ONLY
 	// Add validation layers to instance create info
 	createInfo.enabledLayerCount = 1;
 	createInfo.ppEnabledLayerNames = validationLayers;
-
+	
 	// Add pNext debug messenger for instance debugging
 	VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
 	debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 	debugCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-									VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-									VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+	VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+	VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 	debugCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-								VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-								VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+	VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+	VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 	debugCreateInfo.pfnUserCallback = debugCallback;
 	createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
 #else
+	// Release ONLY
 	createInfo.enabledLayerCount = 0;
 #endif
-
+	
 	// Create instance
 	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) throw std::runtime_error("VulkanApp: Failed to create instance!");
     else if (vkcallouts) std::cout << "VulkanApp: Successfully created vulkan instance for vulkan application \"" << appName << "\"\n";
-
+	
 	// Check for supported extensions
 #ifndef NDEBUG
+	// Debug ONLY
 	checkSupportedExtensions();
 #endif
+
 }
+
 #ifndef NDEBUG
+// Debug ONLY
 void VulkanApp::setupDebugMessenger() {
 	if (vkcallouts) std::cout << "VulkanApp: Setting up debug messenger...\n";
 	// Setup the debug messenger for Vulkan Validation Layers
@@ -232,16 +244,16 @@ void VulkanApp::setupDebugMessenger() {
 	VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 	createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-								 VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-								 VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+	VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+	VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 	createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-							 VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-							 VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+	VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+	VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 	createInfo.pfnUserCallback = debugCallback;
-
+	
 	// Create debug messenger
 	if (createDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS)
-        throw std::runtime_error("VulkanApp: Failed to set up debug messenger!");
+	throw std::runtime_error("VulkanApp: Failed to set up debug messenger!");
 	if (vkcallouts) std::cout << "VulkanApp: Successfully setup debug messenger\n";
 }
 // Utils
@@ -262,7 +274,7 @@ bool VulkanApp::checkValidationLayerSupport() {
 		}
 		if (!layerFound) return false;
 	}
-
+	
 	// Free unused memory
 	free(availableLayers);
 	
@@ -282,6 +294,7 @@ void VulkanApp::checkSupportedExtensions() {
 	free(extensions);
 }
 #endif
+
 std::vector<const char*> VulkanApp::getRequiredExtensions() {
 	if (vkcallouts) std::cout << "VulkanApp: Getting GLFW required extensions...\n";
 	// Get extensions required by GLFW
@@ -289,13 +302,17 @@ std::vector<const char*> VulkanApp::getRequiredExtensions() {
 	const char** glfwExtensions;
 	glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 	std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+	
 #ifndef NDEBUG
+	// Debug ONLY
 	extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
+
 	return extensions;
 }
 
 #ifndef NDEBUG
+// Debug ONLY
 // Static validation methods
 VKAPI_ATTR VkBool32 VKAPI_CALL VulkanApp::debugCallback(
 	VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -331,3 +348,5 @@ void VulkanApp::destroyDebugUtilsMessengerEXT(
     function(insatnce, debugMessenger, pAllocator);
 }
 #endif
+
+}

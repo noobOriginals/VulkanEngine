@@ -3,8 +3,14 @@
 // Lib includes
 
 // Local Includes
+
+// Test API
 // #include <api.hpp>
+// using namespace api;
+
+// Test App
 #include <app.hpp>
+using namespace app;
 
 // void test() {
 // #ifndef NDEBUG
