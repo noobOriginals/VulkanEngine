@@ -165,6 +165,30 @@ private:
         uint32_t deviceCount = 0;
         vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
         if (deviceCount == 0) throw std::runtime_error("Failed to find GPU's with Vulkan support!");
+        VkPhysicalDevice* devices = (VkPhysicalDevice*)malloc(sizeof(VkPhysicalDevice) * deviceCount);
+        vkEnumeratePhysicalDevices(instance, &deviceCount, devices);
+
+        for (int i = 0; i < deviceCount; i++) {
+            if (isDeviceSuitable(devices[i])) {
+                physicalDevice = devices[i];
+                break;
+            }
+        }
+        if (physicalDevice == VK_NULL_HANDLE) throw std::runtime_error("Failed to find suitable GPU!");
+
+        // Free unused memory
+        free(devices);
+    }
+    // Check for requirements of GPU specs
+    bool isDeviceSuitable(VkPhysicalDevice device) {\
+        // Get GPU Specs
+        VkPhysicalDeviceProperties deviceProperties;
+        vkGetPhysicalDeviceProperties(device, &deviceProperties);
+        VkPhysicalDeviceFeatures deviceFeatures;
+        vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+        // Set requirements
+        bool isSuitable = true;
+        return isSuitable;
     }
     
     // Members
