@@ -36,13 +36,7 @@ Window::Window(const int width, const int height, const std::string title) {
 	
 	// Create window and associate pointer
 	address = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
-	if (address == nullptr) {
-		std::cerr << "Window: Failed to create window " << title << "\n";
-		if (windowCount < 1) {
-			glfwTerminate();
-			std::cerr << "Window: Terminating GLFW" << "\n";
-		}
-	}
+	if (address == nullptr) throw std::runtime_error("Window: Failed to create window " + title + "\n");
 	glfwMakeContextCurrent(address);
 	
 	// Set Window parameters

@@ -7,8 +7,8 @@
 #include <vector>
 
 // Lib includes
-#include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
+#include <glfw/glfw3.h>
 
 // Local Includes
 
