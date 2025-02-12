@@ -51,7 +51,7 @@ public:
 private:
 	std::string title;
 	GLFWwindow* address;
-	int width, height;
+	int32_t width, height;
 	bool fscreen, resizable;
 };
 

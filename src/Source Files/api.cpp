@@ -87,7 +87,7 @@ void Window::fullscreen() {
 }
 void Window::windowed() {
 	const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-	glfwSetWindowMonitor(address, nullptr, (int)(mode->width / 2.0f - width / 2.0f), (int)(mode->height / 2.0f - height / 2.0f), width, height, GLFW_DONT_CARE);
+	glfwSetWindowMonitor(address, nullptr, (int32_t)(mode->width / 2.0f - width / 2.0f), (int32_t)(mode->height / 2.0f - height / 2.0f), width, height, GLFW_DONT_CARE);
 	fscreen = false;
 }
 bool Window::isFullscreen() {

@@ -182,7 +182,7 @@ void App::pickPhysicalDevice() {
     VkPhysicalDevice* devices = (VkPhysicalDevice*)malloc(sizeof(VkPhysicalDevice) * deviceCount);
     vkEnumeratePhysicalDevices(instance, &deviceCount, devices);
 
-    for (int i = 0; i < deviceCount; i++) {
+    for (int32_t i = 0; i < deviceCount; i++) {
         if (isDeviceSuitable(devices[i])) {
             physicalDevice = devices[i];
             break;
@@ -215,7 +215,7 @@ App::QueueFamilyIndices App::findQueueFamilies(VkPhysicalDevice device) {
     VkQueueFamilyProperties* queueFamilies = (VkQueueFamilyProperties*)malloc(sizeof(VkQueueFamilyProperties) * queueFamilyCount);
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies);
 
-    for (int i = 0; i < queueFamilyCount; i++) {
+    for (int32_t i = 0; i < queueFamilyCount; i++) {
         if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) indices.graphicsFamily.set(i);
         if (indices.isComplete()) break;
     }
