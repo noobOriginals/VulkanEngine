@@ -30,7 +30,7 @@ void test() {
     app.run();
 }
 
-int main() {
+int32_t main() {
     test();
 	return 0;
 }

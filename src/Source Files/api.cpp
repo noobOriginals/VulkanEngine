@@ -3,27 +3,27 @@ using namespace api;
 using namespace window;
 using namespace vulkan;
 
-void def_framebuffer_size_callback(GLFWwindow* window, int width, int height) {}
+void def_framebuffer_size_callback(GLFWwindow* window, int32_t width, int32_t height) {}
 
 namespace api {
 
 namespace window {
 	// Utility
-	int windowCount = 0;
+	uint32_t windowCount = 0;
 	bool wcallouts = false;
-	int getWindowCount() { return windowCount; }
+	uint32_t getWindowCount() { return windowCount; }
 	void useCallouts(bool value) { wcallouts = value; }
 }
 namespace vulkan {
 	// Utility
-	int vulkanAppCount = 0;
+	uint32_t vulkanAppCount = 0;
 	bool vkcallouts = false;
-	int getVulkanAppCount() { return vulkanAppCount; }
+	uint32_t getVulkanAppCount() { return vulkanAppCount; }
 	void useCallouts(bool value) { vkcallouts = value; }
 }
 
 // Window
-Window::Window(const int width, const int height, const std::string title) {
+Window::Window(const uint32_t width, const uint32_t height, const std::string title) {
 	this->title = title;
 	this->width = width;
 	this->height = height;
@@ -31,7 +31,7 @@ Window::Window(const int width, const int height, const std::string title) {
 	if (wcallouts) std::cout << "Window: Creating window \"" << title << "\"\n";
 	
 	// Prepare GLFW for window creation
-	glfwInit();
+	if (windowCount < 1) glfwInit();
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	
 	// Create window and associate pointer
@@ -69,10 +69,10 @@ void Window::flush() {
 	glfwSwapBuffers(address);
 	glfwPollEvents();
 }
-void Window::setFramebufferSizeCallback(void(*func)(GLFWwindow* window, int width, int height)) {
+void Window::setFramebufferSizeCallback(void(*func)(GLFWwindow* window, int32_t width, int32_t height)) {
 	glfwSetFramebufferSizeCallback(address, func);
 }
-void Window::setCursorPosCallback(void(*func)(GLFWwindow* window, double xpos, double ypos)) {
+void Window::setCursorPosCallback(void(*func)(GLFWwindow* window, double_t xpos, double_t ypos)) {
 	glfwSetCursorPosCallback(address, func);
 }
 GLFWwindow* Window::getAddress() { return address; }
@@ -96,10 +96,10 @@ bool Window::isFullscreen() {
 bool Window::isResizable() {
 	return resizable;
 }
-bool Window::keyPressed(short key) {
+bool Window::keyPressed(int16_t key) {
 	return (glfwGetKey(address, key) == GLFW_PRESS);
 }
-bool Window::keyTyped(short key, bool& schedule) {
+bool Window::keyTyped(int16_t key, bool& schedule) {
 	if (keyPressed(key)) {
 		schedule = true;
 	}
@@ -111,7 +111,7 @@ bool Window::keyTyped(short key, bool& schedule) {
 		return false;
 	}
 }
-bool Window::mousePressed(short button) {
+bool Window::mousePressed(int16_t button) {
 	return (glfwGetMouseButton(address, button) == GLFW_PRESS);
 }
 void Window::makeCurrentContext() {
@@ -133,7 +133,7 @@ void Window::setWindowResizable(bool resizable) {
 	glfwSetWindowAttrib(address, GLFW_RESIZABLE, resizable ? GLFW_TRUE : GLFW_FALSE);
     this->resizable = resizable;
 }
-void Window::getSize(int* width, int* height) {
+void Window::getSize(int32_t* width, int32_t* height) {
 	glfwGetWindowSize(address, width, height);
 }
 void Window::enableVSync() {
