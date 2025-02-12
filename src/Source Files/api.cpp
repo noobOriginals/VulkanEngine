@@ -67,7 +67,9 @@ Window::~Window() {
 }
 // Utility
 void Window::close() {
+	// Close and discard resources
 	glfwSetWindowShouldClose(address, GLFW_TRUE);
+	glfwDestroyWindow(address);
 }
 void Window::flush() {
 	glfwSwapBuffers(address);
