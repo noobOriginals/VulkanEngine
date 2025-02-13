@@ -15,9 +15,10 @@ With it installed, create a new folder on your computer named "**vulkan**". Then
 ## GLFW
 
 Get the GLFW library from **[their website](https://www.glfw.org/)** or by **[cloning it on github](https://github.com/glfw/glfw)**.  
-Then follow **[these steps](#building-with-the-cmake-gui)** to build the GLFW library with CMake.    
+Then follow **[these steps](#building-with-the-cmake-gui)** to build the GLFW library with CMake.  
+**Make sure to build it with the "Release" config.**    
 In the build directory provided to CMake, after you build the files, you should have a folder named "**src**".
-Navigate to "**src/Debug**", and copy the "**glfw3.lib**" to your "**vulkan**" folder.  
+Navigate to "**src/Release**", and copy the "**glfw3.lib**" to your "**vulkan**" folder.  
 Then go back to your GLFW source folder and copy the contents of the "**include**" folder (the "**GLFW**" folder) to your "**vulkan**" folder.
 
 ## Next
@@ -103,8 +104,8 @@ Then you can run the generated binary `/bin/<config>/Engine-test.exe` to see the
 ## Assimp
 
 Clone the **[GitHub Repo](https://github.com/assimp/assimp)** and follow **[these steps](#building-with-the-cmake-gui)** to build the library.  
-Then: place the "**assimp-vc143-mtd.lib**" found in "**./lib/Debug**" in your "**vulkan**" folder.  
-Then: place the "**assimp-vc143-mtd.dll**" found in "**./bin/Debug**" in your "**vulkan**" folder.  
+**Make sure to build it with the "Release" config.**  
+Then: place the "**assimp-vc143-mtd.lib**" found in "**./lib/Release**" in your "**vulkan**" folder.  
 Then: place the contents of the "**./include**" folder in your "**vulkan**" folder.
 
 ## stb_image
