@@ -9,6 +9,9 @@
 #include <vulkan/vulkan.h>
 #include <glfw/glfw3.h>
 
+// Local includes
+#include <util/types.h>
+
 namespace app {
 
 class App {
@@ -17,9 +20,9 @@ public:
 private:
     // Data types
     struct QueueFamily {
-        uint32_t index;
+        uint32 index;
         bool hasValue = false;
-        void set(uint32_t i) {
+        void set(uint32 i) {
             index = i;
             hasValue = true;
         }
@@ -59,7 +62,7 @@ private:
     bool isDeviceSuitable(VkPhysicalDevice device);
     
     // Members
-    const uint32_t WIDTH = 800, HEIGHT = 600;
+    const uint32 WIDTH = 800, HEIGHT = 600;
     GLFWwindow* window;
     VkInstance instance;
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;

@@ -69,7 +69,7 @@ void App::createInstance() {
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo.pApplicationInfo = &appInfo;
     vector<const char*> extensions = getRequiredExtensions();
-    createInfo.enabledExtensionCount = (uint32_t) extensions.size();
+    createInfo.enabledExtensionCount = (uint32) extensions.size();
     createInfo.ppEnabledExtensionNames = extensions.data();
 
 #ifndef NDEBUG
@@ -107,12 +107,12 @@ void App::createInstance() {
 // Debug ONLY
 void App::checkSupportedExtensions() {
     // Check for supported extensions
-    uint32_t extensionCount = 0;
+    uint32 extensionCount = 0;
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
     VkExtensionProperties* extensions = (VkExtensionProperties*)malloc(extensionCount * sizeof(VkExtensionProperties));
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions);
     cout << "\nAvailable extensions:\n";
-    for (uint32_t i = 0; i < extensionCount; i++) {
+    for (uint32 i = 0; i < extensionCount; i++) {
         cout << extensions[i].extensionName << "\n";
     }
     cout << "\n";
@@ -122,13 +122,13 @@ void App::checkSupportedExtensions() {
 }
 bool App::checkValidationLayerSupport() {
     // Check for available validation layers
-    uint32_t layerCount = 0;
+    uint32 layerCount = 0;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
     VkLayerProperties* availableLayers = (VkLayerProperties*)malloc(layerCount * sizeof(VkLayerProperties));
     vkEnumerateInstanceLayerProperties(&layerCount, availableLayers);
-    for (uint32_t i = 0; i < 1; i++) {
+    for (uint32 i = 0; i < 1; i++) {
         bool layerFound = false;
-        for (uint32_t j = 0; j < layerCount; j++) {
+        for (uint32 j = 0; j < layerCount; j++) {
             if (strcmp(validationLayers[i], availableLayers[j].layerName) == 0) {
                 layerFound = true;
                 break;
@@ -162,7 +162,7 @@ void App::setupDebugMessenger() {
 
 vector<const char*> App::getRequiredExtensions() {
     // Get extensions required by GLFW
-    uint32_t glfwExtensionCount = 0;
+    uint32 glfwExtensionCount = 0;
     const char** glfwExtensions;
     glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
     vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
@@ -176,13 +176,13 @@ vector<const char*> App::getRequiredExtensions() {
 }
 
 void App::pickPhysicalDevice() {
-    uint32_t deviceCount = 0;
+    uint32 deviceCount = 0;
     vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
     if (deviceCount == 0) throw std::runtime_error("Failed to find GPU's with Vulkan support!");
     VkPhysicalDevice* devices = (VkPhysicalDevice*)malloc(sizeof(VkPhysicalDevice) * deviceCount);
     vkEnumeratePhysicalDevices(instance, &deviceCount, devices);
 
-    for (int32_t i = 0; i < deviceCount; i++) {
+    for (int32 i = 0; i < deviceCount; i++) {
         if (isDeviceSuitable(devices[i])) {
             physicalDevice = devices[i];
             break;
@@ -209,13 +209,13 @@ bool App::isDeviceSuitable(VkPhysicalDevice device) {
 App::QueueFamilyIndices App::findQueueFamilies(VkPhysicalDevice device) {
     QueueFamilyIndices indices;
 
-    uint32_t queueFamilyCount = 0;
+    uint32 queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
     
     VkQueueFamilyProperties* queueFamilies = (VkQueueFamilyProperties*)malloc(sizeof(VkQueueFamilyProperties) * queueFamilyCount);
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies);
 
-    for (int32_t i = 0; i < queueFamilyCount; i++) {
+    for (int32 i = 0; i < queueFamilyCount; i++) {
         if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) indices.graphicsFamily.set(i);
         if (indices.isComplete()) break;
     }
