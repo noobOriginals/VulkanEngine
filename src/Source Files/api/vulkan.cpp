@@ -1,154 +1,21 @@
-#include <api.hpp>
-using namespace api;
-using namespace window;
-using namespace vulkan;
-
-void def_framebuffer_size_callback(GLFWwindow* window, int32_t width, int32_t height) {}
+#include <api/vulkan.hpp>
+using namespace api::vulkan;
 
 namespace api {
 
-namespace window {
-	// Utility
-	uint32_t windowCount = 0;
-	bool wcallouts = false;
-	uint32_t getWindowCount() { return windowCount; }
-	void useCallouts(bool value) { wcallouts = value; }
-}
 namespace vulkan {
-	// Utility
-	uint32_t vulkanAppCount = 0;
-	bool vkcallouts = false;
-	uint32_t getVulkanAppCount() { return vulkanAppCount; }
-	void useCallouts(bool value) { vkcallouts = value; }
+    // Utility
+    uint32_t vulkanAppCount = 0;
+    bool callouts = false;
+    uint32_t getVulkanAppCount() { return vulkanAppCount; }
+    void useCallouts(bool value) { callouts = value; }
 }
-
-// Window
-Window::Window(const uint32_t width, const uint32_t height, const std::string title) {
-	this->title = title;
-	this->width = width;
-	this->height = height;
-	fscreen = false;
-	if (wcallouts) std::cout << "Window: Creating window \"" << title << "\"\n";
-	
-	// Prepare GLFW for window creation
-	if (windowCount < 1) glfwInit();
-	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	
-	// Create window and associate pointer
-	address = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
-	if (address == nullptr) throw std::runtime_error("Window: Failed to create window " + title + "\n");
-	glfwMakeContextCurrent(address);
-	
-	// Set Window parameters
-	glfwSetFramebufferSizeCallback(address, def_framebuffer_size_callback);
-	glfwSwapInterval(1);
-	glfwSetInputMode(address, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-	glfwShowWindow(address);
-	
-	windowCount++;
-}
-Window::~Window() {
-	// Discard resources
-	glfwSetWindowShouldClose(address, true);
-	glfwDestroyWindow(address);
-	windowCount--;
-	if (wcallouts) std::cout << "Window: Destructing window \"" << title << "\"\n";
-	if (windowCount < 1) {
-		glfwTerminate();
-		if (wcallouts) std::cout << "Window: No windows remaining" << "\n";
-		if (wcallouts) std::cout << "Window: Terminating GLFW" << "\n";
-	}
-}
-// Utility
-void Window::close() {
-	// Close and discard resources
-	glfwSetWindowShouldClose(address, GLFW_TRUE);
-	glfwDestroyWindow(address);
-}
-void Window::flush() {
-	glfwSwapBuffers(address);
-	glfwPollEvents();
-}
-void Window::setFramebufferSizeCallback(void(*func)(GLFWwindow* window, int32_t width, int32_t height)) {
-	glfwSetFramebufferSizeCallback(address, func);
-}
-void Window::setCursorPosCallback(void(*func)(GLFWwindow* window, double_t xpos, double_t ypos)) {
-	glfwSetCursorPosCallback(address, func);
-}
-GLFWwindow* Window::getAddress() { return address; }
-bool Window::shouldClose() {
-	return glfwWindowShouldClose(address);
-}
-void Window::fullscreen() {
-	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-	glfwSetWindowMonitor(address, monitor, 0, 0, mode->width, mode->height, GLFW_DONT_CARE);
-	fscreen = true;
-}
-void Window::windowed() {
-	const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-	glfwSetWindowMonitor(address, nullptr, (int32_t)(mode->width / 2.0f - width / 2.0f), (int32_t)(mode->height / 2.0f - height / 2.0f), width, height, GLFW_DONT_CARE);
-	fscreen = false;
-}
-bool Window::isFullscreen() {
-	return fscreen;
-}
-bool Window::isResizable() {
-	return resizable;
-}
-bool Window::keyPressed(int16_t key) {
-	return (glfwGetKey(address, key) == GLFW_PRESS);
-}
-bool Window::keyTyped(int16_t key, bool& schedule) {
-	if (keyPressed(key)) {
-		schedule = true;
-	}
-	if (schedule && !keyPressed(key)) {
-		schedule = false;
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-bool Window::mousePressed(int16_t button) {
-	return (glfwGetMouseButton(address, button) == GLFW_PRESS);
-}
-void Window::makeCurrentContext() {
-	glfwMakeContextCurrent(address);
-}
-void Window::releaseMouse() {
-	glfwSetInputMode(address, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-}
-void Window::captureMouse() {
-	glfwSetInputMode(address, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-}
-void Window::show() {
-	glfwShowWindow(address);
-}
-void Window::hide() {
-	glfwHideWindow(address);
-}
-void Window::setWindowResizable(bool resizable) {
-	glfwSetWindowAttrib(address, GLFW_RESIZABLE, resizable ? GLFW_TRUE : GLFW_FALSE);
-    this->resizable = resizable;
-}
-void Window::getSize(int32_t* width, int32_t* height) {
-	glfwGetWindowSize(address, width, height);
-}
-void Window::enableVSync() {
-	glfwSwapInterval(1);
-}
-void Window::disableVSync() {
-	glfwSwapInterval(0);
-}
-
 
 // VulkanApp
 VulkanApp::VulkanApp(std::string appName, std::string engineName) {
 	this->appName = appName;
     this->engineName = engineName;
-    if (vkcallouts) std::cout << "VulkanApp: Creating vulkan application \"" << appName << "\" with engine \"" << engineName << "\"\n";
+    if (callouts) std::cout << "VulkanApp: Creating vulkan application \"" << appName << "\" with engine \"" << engineName << "\"\n";
 	// Init Vulkan components
     createInstance();
 	#ifndef NDEBUG
@@ -167,8 +34,8 @@ VulkanApp::~VulkanApp() {
 
     vkDestroyInstance(instance, nullptr);
 	vulkanAppCount--;
-	if (vkcallouts) std::cout << "VulkanApp: Destructing vulkan application \"" << appName << "\"\n";
-	if (vulkanAppCount < 1 && vkcallouts) std::cout << "VulkanApp: No vulkan applications remaining\n";
+	if (callouts) std::cout << "VulkanApp: Destructing vulkan application \"" << appName << "\"\n";
+	if (vulkanAppCount < 1 && callouts) std::cout << "VulkanApp: No vulkan applications remaining\n";
 }
 
 // Private methods
@@ -177,7 +44,7 @@ void VulkanApp::createInstance() {
 #ifndef NDEBUG
 	// Debug ONLY
 	if (!checkValidationLayerSupport()) throw std::runtime_error("VulkanApp: Validation layers requested, but not available!");
-	else if (vkcallouts) std::cout << "VulkanApp: Validation layers enabled succesfully\n";
+	else if (callouts) std::cout << "VulkanApp: Validation layers enabled succesfully\n";
 #endif
 	
 	// App info
@@ -221,7 +88,7 @@ void VulkanApp::createInstance() {
 	
 	// Create instance
 	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) throw std::runtime_error("VulkanApp: Failed to create instance!");
-    else if (vkcallouts) std::cout << "VulkanApp: Successfully created vulkan instance for vulkan application \"" << appName << "\"\n";
+    else if (callouts) std::cout << "VulkanApp: Successfully created vulkan instance for vulkan application \"" << appName << "\"\n";
 	
 	// Check for supported extensions
 #ifndef NDEBUG
@@ -234,7 +101,7 @@ void VulkanApp::createInstance() {
 #ifndef NDEBUG
 // Debug ONLY
 void VulkanApp::setupDebugMessenger() {
-	if (vkcallouts) std::cout << "VulkanApp: Setting up debug messenger...\n";
+	if (callouts) std::cout << "VulkanApp: Setting up debug messenger...\n";
 	// Setup the debug messenger for Vulkan Validation Layers
 	// Populate debug messenger create info
 	VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
@@ -250,11 +117,11 @@ void VulkanApp::setupDebugMessenger() {
 	// Create debug messenger
 	if (createDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS)
 	throw std::runtime_error("VulkanApp: Failed to set up debug messenger!");
-	if (vkcallouts) std::cout << "VulkanApp: Successfully setup debug messenger\n";
+	if (callouts) std::cout << "VulkanApp: Successfully setup debug messenger\n";
 }
 // Utils
 bool VulkanApp::checkValidationLayerSupport() {
-	if (vkcallouts) std::cout << "VulkanApp: Checking for validation layer support...\n";
+	if (callouts) std::cout << "VulkanApp: Checking for validation layer support...\n";
 	// Check for available validation layers
 	uint32_t layerCount = 0;
 	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -277,7 +144,7 @@ bool VulkanApp::checkValidationLayerSupport() {
 	return true;
 }
 void VulkanApp::checkSupportedExtensions() {
-	if (vkcallouts) std::cout << "VulkanApp: Checking for supported extensions...\n";
+	if (callouts) std::cout << "VulkanApp: Checking for supported extensions...\n";
 	// Check for supported extensions
 	uint32_t extensionCount = 0;
 	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
@@ -292,7 +159,7 @@ void VulkanApp::checkSupportedExtensions() {
 #endif
 
 std::vector<const char*> VulkanApp::getRequiredExtensions() {
-	if (vkcallouts) std::cout << "VulkanApp: Getting GLFW required extensions...\n";
+	if (callouts) std::cout << "VulkanApp: Getting GLFW required extensions...\n";
 	// Get extensions required by GLFW
 	uint32_t glfwExtensionCount = 0;
 	const char** glfwExtensions;
@@ -326,7 +193,7 @@ VkResult VulkanApp::createDebugUtilsMessengerEXT(
 	const VkAllocationCallbacks* pAllocator,
 	VkDebugUtilsMessengerEXT* pDebugMessenger
 ) {
-	if (vkcallouts) std::cout << "VulkanApp: Creating debug messenger extension...\n";
+	if (callouts) std::cout << "VulkanApp: Creating debug messenger extension...\n";
 	// Callback for creating the debug messenger extesnion
     auto function = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(insatnce, "vkCreateDebugUtilsMessengerEXT");
     if (function == nullptr) return VK_ERROR_EXTENSION_NOT_PRESENT;
@@ -337,7 +204,7 @@ void VulkanApp::destroyDebugUtilsMessengerEXT(
 	VkDebugUtilsMessengerEXT debugMessenger,
 	const VkAllocationCallbacks* pAllocator
 ) {
-	if (vkcallouts) std::cout << "VulkanApp: Destroying debug messenger extension...\n";
+	if (callouts) std::cout << "VulkanApp: Destroying debug messenger extension...\n";
 	// Callback for destroying the debug messenger extension
     auto function = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(insatnce, "vkDestroyDebugUtilsMessengerEXT");
     if (function == nullptr) return;
