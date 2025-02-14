@@ -9,8 +9,10 @@ namespace window {
 	// Utility
 	uint32 windowCount = 0;
 	bool callouts = false, glfwTerminated = true;
+	std::string focusedWindow;
 	uint32 getWindowCount() { return windowCount; }
 	void useCallouts(bool value) { callouts = value; }
+	std::string getFocusedWindow() { return focusedWindow; }
 }
 
 Window::Window(const uint32 width, const uint32 height, const std::string title) {
@@ -129,6 +131,7 @@ bool Window::mousePressed(int16 button) {
 }
 void Window::focus() {
 	glfwMakeContextCurrent(address);
+	focusedWindow = title;
 }
 void Window::releaseMouse() {
 	glfwSetInputMode(address, GLFW_CURSOR, GLFW_CURSOR_NORMAL);

@@ -18,6 +18,7 @@ namespace api {
 namespace window {
 	uint32 getWindowCount();
 	void useCallouts(bool callouts);
+	std::string getFocusedWindow();
 }
 class Window {
 public:
