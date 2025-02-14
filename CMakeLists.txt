@@ -8,7 +8,7 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${FullOutputDir}")
 
 set (SrcPath "${CMAKE_SOURCE_DIR}/src/Source Files")
 set (HeaderPath "${CMAKE_SOURCE_DIR}/src/Header Files")
-file (GLOB_RECURSE Sources CONFIGURE_DEPENDS "${SrcPath}/*.cpp" "${HeaderPath}/*.hpp" "${SrcPath}/*.c" "${HeaderPath}/*.h")
+file (GLOB_RECURSE Sources CONFIGURE_DEPENDS "${SrcPath}/*.cpp" "${SrcPath}/*.c")
 
 include_directories(${HeaderPath} ${SrcPath} $ENV{VULKAN_PATH})
 link_directories($ENV{VULKAN_PATH})
