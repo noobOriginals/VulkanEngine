@@ -127,7 +127,7 @@ bool Window::keyTyped(int16 key, bool& schedule) {
 bool Window::mousePressed(int16 button) {
 	return (glfwGetMouseButton(address, button) == GLFW_PRESS);
 }
-void Window::makeCurrentContext() {
+void Window::focus() {
 	glfwMakeContextCurrent(address);
 }
 void Window::releaseMouse() {

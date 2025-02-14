@@ -39,7 +39,7 @@ public:
 	bool keyPressed(int16 key);
 	bool keyTyped(int16 key, bool& schedule);
 	bool mousePressed(int16 button);
-	void makeCurrentContext();
+	void focus();
 	void releaseMouse();
 	void captureMouse();
 	void show();
