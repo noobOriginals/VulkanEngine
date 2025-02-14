@@ -22,8 +22,8 @@ namespace window {
 }
 class Window {
 public:
-	Window(const uint32 width, const uint32 height, const std::string title);
 	Window(Window&) = delete;
+	Window(const uint32 width, const uint32 height, const std::string title);
 	~Window();
 	// Utility
 	void close();

@@ -22,8 +22,8 @@ namespace vulkan {
 }
 class VulkanApp {
 public:
-	VulkanApp(std::string appName, std::string engineName);
 	VulkanApp(VulkanApp&) = delete;
+	VulkanApp(std::string appName, std::string engineName);
 	~VulkanApp();
 private:
 	// Methods
