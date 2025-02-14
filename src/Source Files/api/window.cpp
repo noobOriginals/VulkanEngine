@@ -67,7 +67,7 @@ void Window::close() {
 		glfwSetWindowShouldClose(address, true);
 		glfwDestroyWindow(address);
 		windowCount--;
-		if (callouts) std::cout << "Window: Destructing window \"" << title << "\"\n";
+		if (callouts) std::cout << "Window: Closing window \"" << title << "\"\n";
 	}
 	if (windowCount < 1 && !glfwTerminated) {
 		glfwTerminate();
@@ -80,6 +80,10 @@ void Window::close() {
 void Window::flush() {
 	glfwSwapBuffers(address);
 	glfwPollEvents();
+}
+void Window::setTitle(std::string title) {
+	glfwSetWindowTitle(address, title.c_str());
+	this->title = title;
 }
 void Window::setFramebufferSizeCallback(void(*func)(GLFWwindow* window, int32 width, int32 height)) {
 	glfwSetFramebufferSizeCallback(address, func);
