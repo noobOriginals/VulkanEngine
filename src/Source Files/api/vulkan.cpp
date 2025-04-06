@@ -16,12 +16,17 @@ VulkanApp::VulkanApp(std::string appName, std::string engineName) {
 	this->appName = appName;
     this->engineName = engineName;
     if (callouts) std::cout << "VulkanApp: Creating vulkan application \"" << appName << "\" with engine \"" << engineName << "\"\n";
+
 	// Init Vulkan components
     createInstance();
-	#ifndef NDEBUG
+
+#ifndef NDEBUG
+    // Debug ONLY
 	setupDebugMessenger();
-	#endif
-	
+#endif
+
+    pickPhysicalDevice();
+
 	vulkanAppCount++;
 }
 VulkanApp::~VulkanApp() {
@@ -46,7 +51,7 @@ void VulkanApp::createInstance() {
 	if (!checkValidationLayerSupport()) throw std::runtime_error("VulkanApp: Validation layers requested, but not available!");
 	else if (callouts) std::cout << "VulkanApp: Validation layers enabled succesfully\n";
 #endif
-	
+
 	// App info
 	VkApplicationInfo appInfo = {};
 	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -55,7 +60,7 @@ void VulkanApp::createInstance() {
 	appInfo.pEngineName = engineName.c_str();
 	appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 	appInfo.apiVersion = VK_API_VERSION_1_0;
-	
+
 	// Create info
 	VkInstanceCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -69,7 +74,7 @@ void VulkanApp::createInstance() {
 	// Add validation layers to instance create info
 	createInfo.enabledLayerCount = 1;
 	createInfo.ppEnabledLayerNames = validationLayers;
-	
+
 	// Add pNext debug messenger for instance debugging
 	VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
 	debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -85,17 +90,35 @@ void VulkanApp::createInstance() {
 	// Release ONLY
 	createInfo.enabledLayerCount = 0;
 #endif
-	
+
 	// Create instance
 	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) throw std::runtime_error("VulkanApp: Failed to create instance!");
     else if (callouts) std::cout << "VulkanApp: Successfully created vulkan instance for vulkan application \"" << appName << "\"\n";
-	
+
 	// Check for supported extensions
 #ifndef NDEBUG
 	// Debug ONLY
 	checkSupportedExtensions();
 #endif
 
+}
+void VulkanApp::pickPhysicalDevice() {
+    uint32 deviceCount = 0;
+    vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+    if (deviceCount == 0) throw std::runtime_error("Failed to find GPU's with Vulkan support!");
+    VkPhysicalDevice* devices = (VkPhysicalDevice*)malloc(sizeof(VkPhysicalDevice) * deviceCount);
+    vkEnumeratePhysicalDevices(instance, &deviceCount, devices);
+
+    for (int32 i = 0; i < deviceCount; i++) {
+        if (isDeviceSuitable(devices[i])) {
+            physicalDevice = devices[i];
+            break;
+        }
+    }
+    if (physicalDevice == VK_NULL_HANDLE) throw std::runtime_error("Failed to find suitable GPU!");
+
+    // Free unused memory
+    free(devices);
 }
 
 #ifndef NDEBUG
@@ -113,7 +136,7 @@ void VulkanApp::setupDebugMessenger() {
 	VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
 	VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 	createInfo.pfnUserCallback = debugCallback;
-	
+
 	// Create debug messenger
 	if (createDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS)
 	throw std::runtime_error("VulkanApp: Failed to set up debug messenger!");
@@ -137,10 +160,10 @@ bool VulkanApp::checkValidationLayerSupport() {
 		}
 		if (!layerFound) return false;
 	}
-	
+
 	// Free unused memory
 	free(availableLayers);
-	
+
 	return true;
 }
 void VulkanApp::checkSupportedExtensions() {
@@ -152,7 +175,7 @@ void VulkanApp::checkSupportedExtensions() {
 	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions);
 	std::cout << "VulkanApp: Available extensions:\n";
 	for (uint32_t i = 0; i < extensionCount; i++) std::cout << "    " << extensions[i].extensionName << "\n";
-	
+
 	// Free unused memory
 	free(extensions);
 }
@@ -165,13 +188,43 @@ std::vector<const char*> VulkanApp::getRequiredExtensions() {
 	const char** glfwExtensions;
 	glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 	std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-	
+
 #ifndef NDEBUG
 	// Debug ONLY
 	extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
 
 	return extensions;
+}
+VulkanApp::QueueFamilyIndices VulkanApp::findQueueFamilies(VkPhysicalDevice device) {
+    QueueFamilyIndices indices;
+
+    uint32 queueFamilyCount = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+    VkQueueFamilyProperties* queueFamilies = (VkQueueFamilyProperties*)malloc(sizeof(VkQueueFamilyProperties) * queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies);
+
+    for (int32 i = 0; i < queueFamilyCount; i++) {
+        if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) indices.graphicsFamily.set(i);
+        if (indices.isComplete()) break;
+    }
+
+    // Free unused memory
+    free(queueFamilies);
+
+    return indices;
+}
+bool VulkanApp::isDeviceSuitable(VkPhysicalDevice device) {
+    // Get GPU Specs
+    VkPhysicalDeviceProperties deviceProperties;
+    vkGetPhysicalDeviceProperties(device, &deviceProperties);
+    VkPhysicalDeviceFeatures deviceFeatures;
+    vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+    // Set requirements
+    QueueFamilyIndices indices = findQueueFamilies(device);
+    bool isSuitable = indices.isComplete();
+    return isSuitable;
 }
 
 #ifndef NDEBUG

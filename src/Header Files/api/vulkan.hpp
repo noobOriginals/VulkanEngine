@@ -26,6 +26,22 @@ public:
 	VulkanApp(std::string appName, std::string engineName);
 	~VulkanApp();
 private:
+    // Data types
+    struct QueueFamily {
+        uint32 index;
+        bool hasValue = false;
+        void set(uint32 i) {
+            index = i;
+            hasValue = true;
+        }
+    };
+    struct QueueFamilyIndices {
+        QueueFamily graphicsFamily;
+        bool isComplete() {
+            return graphicsFamily.hasValue;
+        }
+    };
+
 	// Methods
 	void createInstance();
 	void pickPhysicalDevice();
@@ -40,6 +56,8 @@ private:
 
 	// Utils
 	std::vector<const char*> getRequiredExtensions();
+    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+    bool isDeviceSuitable(VkPhysicalDevice device);
 
 	// Members
 	VkInstance instance;

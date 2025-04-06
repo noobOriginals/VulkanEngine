@@ -23,25 +23,25 @@ Window::Window(const uint32 width, const uint32 height, const std::string title)
 	resizable = true;
 	closed = false;
 	if (callouts) std::cout << "Window: Creating window \"" << title << "\"\n";
-	
+
 	// Prepare GLFW for window creation
 	if (glfwTerminated) {
 		glfwInit();
 		glfwTerminated = false;
 	}
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	
+
 	// Create window and associate pointer
 	address = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 	if (address == nullptr) throw std::runtime_error("Window: Failed to create window " + title + "\n");
 	glfwMakeContextCurrent(address);
-	
+
 	// Set Window parameters
 	glfwSetFramebufferSizeCallback(address, def_framebuffer_size_callback);
 	glfwSwapInterval(1);
 	glfwSetInputMode(address, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 	glfwShowWindow(address);
-	
+
 	windowCount++;
 }
 Window::~Window() {

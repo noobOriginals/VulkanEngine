@@ -94,7 +94,7 @@ void App::createInstance() {
 
     // Create instance
     if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) throw runtime_error("Failed to create instance!");
-    
+
 #ifndef NDEBUG
     // Check for extension support
     // Debug ONLY
@@ -154,7 +154,7 @@ void App::setupDebugMessenger() {
     VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
     VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
     createInfo.pfnUserCallback = debugCallback;
-    
+
     if (createDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS)
     throw std::runtime_error("Failed to set up debug messenger!");
 }
@@ -211,7 +211,7 @@ App::QueueFamilyIndices App::findQueueFamilies(VkPhysicalDevice device) {
 
     uint32 queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
-    
+
     VkQueueFamilyProperties* queueFamilies = (VkQueueFamilyProperties*)malloc(sizeof(VkQueueFamilyProperties) * queueFamilyCount);
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies);
 

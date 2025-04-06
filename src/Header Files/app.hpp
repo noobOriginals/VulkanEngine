@@ -60,7 +60,7 @@ private:
 
     // Check for requirements of GPU specs
     bool isDeviceSuitable(VkPhysicalDevice device);
-    
+
     // Members
     const uint32 WIDTH = 800, HEIGHT = 600;
     GLFWwindow* window;
